@@ -23,9 +23,17 @@ export default async(req, res, next) => {
             });
         }
 
+
+        // Verificar si el usuario está bloqueado
+        if (user.active === false) {
+            return res.status(403).json({
+                success: false,
+                message: 'Usuario bloqueado. Contacta al administrador.'
+            });
+        }
+
         // Verificar password hasheada
         const isValidPassword = await bcrypt.compare(password, user.password);
-        
         if (!isValidPassword) {
             return res.status(401).json({
                 success: false,

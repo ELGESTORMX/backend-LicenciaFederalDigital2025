@@ -1,16 +1,6 @@
 import { Router } from "express";
 const users_router = Router();
 
-// Obtener usuario actual (para saber creationLimit y role)
-users_router.get('/me', passport.authenticate('jwt', { session: false }), (req, res) => {
-  if (!req.user) return res.status(401).json({ success: false, message: 'No autenticado' });
-  res.json({
-    _id: req.user._id,
-    username: req.user.username,
-    role: req.user.role,
-    creationLimit: req.user.creationLimit
-  });
-});
 import register from "../controllers/users/register.js";
 import Hash from '../middlewares/createHash.js'
 import signIn from "../controllers/users/signIn.js";
@@ -18,6 +8,9 @@ import passwordIsOk from "../middlewares/passwordIsOk.js";
 import generateToken from '../middlewares/generateToken.js'
 import signInResponse from "../controllers/users/signInResponse.js";
 import signOut from '../controllers/users/signOut.js'
+import getMe from '../controllers/users/getMe.js'
+// Endpoint para saber si el usuario sigue activo
+users_router.get('/me', passport.authenticate('jwt', { session: false }), getMe);
 import passport from '../middlewares/passport.js'
 import isSuperAdmin from '../middlewares/isSuperAdmin.js'
 import updateCreationLimit from '../controllers/users/updateCreationLimit.js'
