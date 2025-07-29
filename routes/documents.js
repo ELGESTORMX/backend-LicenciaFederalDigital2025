@@ -23,7 +23,8 @@ documents_router.get('/myLicenses', passport.authenticate('jwt', { session: fals
 documents_router.get('/', passport.authenticate('jwt', { session: false }), checkActive, getAllDocuments);
 // Obtener una licencia específica por idLicense
 
-documents_router.get('/:idLicense', passport.authenticate('jwt', { session: false }), checkActive, getDocumentById);
+// Validación pública de licencia (sin token)
+documents_router.get('/:idLicense', getDocumentById);
 // Eliminar una licencia por idLicense
 
 documents_router.delete('/:idLicense', passport.authenticate('jwt', { session: false }), checkActive, deleteDocument);
