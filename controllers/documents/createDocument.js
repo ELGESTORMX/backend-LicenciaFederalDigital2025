@@ -58,7 +58,7 @@ export default async function createDocument(req, res) {
       bloodType: cleanStr(bloodType),
       donor,
       restrictions: cleanStr(restrictions),
-      createdBy: user._id
+      createdBy: String(user._id)
     });
 
     await doc.save();
