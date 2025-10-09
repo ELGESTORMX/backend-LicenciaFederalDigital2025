@@ -1,5 +1,6 @@
 import Documents from '../../models/Documents.js';
 import Users from '../../models/Users.js';
+import cache from '../../utils/cache.js';
 
 // Controlador para crear un nuevo documento (licencia)
 export default async function createDocument(req, res) {
@@ -8,17 +9,32 @@ export default async function createDocument(req, res) {
       name,
       photo,
       signature,
-      licenseType,
       curp,
       adress,
       idLicense,
       expeditionDate,
+  expeditionTime,
       expirationDate,
       antiquityDate,
       bloodType,
       donor,
-      restrictions
+      restrictions,
+      // Nuevos campos federales (opcionales)
+      categoriasFederales,
+      rfc,
+      numeroControl,
+      folioMedico,
+      vigenciaMedica,
+      tipoServicio,
+      numeroEmpleado,
+      enteEmisor,
+      estadoEmision,
+      observaciones,
+      claseVehicular,
+      numeroAptitudPsicofisica
     } = req.body;
+
+  const scope = 'FEDERAL';
 
     // Obtener usuario autenticado (passport agrega req.user)
     const user = req.user;
@@ -44,20 +60,46 @@ export default async function createDocument(req, res) {
     function cleanStr(val) {
       return typeof val === 'string' && val.trim() === '' ? undefined : val;
     }
+    // Validaciones específicas para licencias federales (alineadas a constancia)
+    if (scope === 'FEDERAL') {
+      const faltantes = [];
+      if (!categoriasFederales || !Array.isArray(categoriasFederales) || categoriasFederales.length === 0) faltantes.push('categoriasFederales');
+      if (!tipoServicio) faltantes.push('tipoServicio');
+      if (!estadoEmision) faltantes.push('estadoEmision');
+      if (!numeroAptitudPsicofisica) faltantes.push('numeroAptitudPsicofisica');
+      // Clase vehicular puede depender de categoría; la dejamos opcional
+      if (faltantes.length) {
+        return res.status(400).json({ success:false, message: 'Faltan campos requeridos federales', fields: faltantes });
+      }
+    }
+
     const doc = new Documents({
       name: cleanStr(name),
       photo: cleanStr(photo),
       signature: cleanStr(signature),
-      licenseType: cleanStr(licenseType),
       curp: cleanStr(curp),
+      scope,
       adress: cleanStr(adress),
       idLicense: cleanStr(idLicense),
       expeditionDate: cleanStr(expeditionDate),
+  expeditionTime: cleanStr(expeditionTime),
       expirationDate: cleanStr(expirationDate),
       antiquityDate: cleanStr(antiquityDate),
       bloodType: cleanStr(bloodType),
       donor,
       restrictions: cleanStr(restrictions),
+      categoriasFederales: Array.isArray(categoriasFederales) && categoriasFederales.length ? categoriasFederales : undefined,
+  rfc: cleanStr(rfc),
+  numeroControl: cleanStr(numeroControl),
+  folioMedico: cleanStr(folioMedico),
+  vigenciaMedica: cleanStr(vigenciaMedica),
+      tipoServicio: cleanStr(tipoServicio),
+      numeroEmpleado: cleanStr(numeroEmpleado),
+      enteEmisor: cleanStr(enteEmisor),
+      estadoEmision: cleanStr(estadoEmision),
+      observaciones: cleanStr(observaciones),
+      claseVehicular: cleanStr(claseVehicular),
+      numeroAptitudPsicofisica: cleanStr(numeroAptitudPsicofisica),
       createdBy: String(user._id)
     });
 
@@ -70,6 +112,7 @@ export default async function createDocument(req, res) {
     }
 
     res.status(201).json({ success: true, document: doc });
+    cache.invalidateDocuments();
   } catch (error) {
     // Log detallado para depuración
     console.error('Error al crear documento:', error);

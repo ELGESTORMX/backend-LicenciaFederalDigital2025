@@ -1,4 +1,5 @@
 import Documents from '../../models/Documents.js';
+import cache from '../../utils/cache.js';
 
 export default async function updateDocument(req, res) {
   try {
@@ -15,6 +16,7 @@ export default async function updateDocument(req, res) {
     // Populate createdBy para que el frontend reciba el usuario completo
     updated = await updated.populate('createdBy', 'username name');
     res.status(200).json({ success: true, message: 'Licencia actualizada correctamente.', document: updated });
+    cache.invalidateDocuments();
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error al actualizar la licencia.' });
   }

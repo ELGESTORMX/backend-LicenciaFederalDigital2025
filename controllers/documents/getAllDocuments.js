@@ -1,4 +1,5 @@
 import Documents from '../../models/Documents.js';
+import cache from '../../utils/cache.js';
 
 // Controlador para obtener documentos paginados y filtrados por varios campos
 export async function getAllDocuments(req, res) {
@@ -19,33 +20,31 @@ export async function getAllDocuments(req, res) {
     // Filtro por N° de licencia y por usuario creador si aplica
     let filter = {};
     if (search) {
-      filter.idLicense = { $regex: search, $options: 'i' };
+      filter.$or = [
+        { idLicense: { $regex: search, $options: 'i' } },
+        { categoriasTexto: { $regex: search, $options: 'i' } },
+        { curp: { $regex: search, $options: 'i' } }
+      ];
     }
     // Solo filtrar por usuario para rol 3 y 4, rol 1 ve todo
     // Solo el rol 1 (SuperAdmin) ve todas las licencias. No filtrar por usuario aquí.
     // Log del filtro final
     console.log('Filtro aplicado:', filter);
 
-    // Contar total de documentos (para paginación)
+    const cacheKey = `all:${page}:${limit}:${search}`;
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      return res.status(200).json({ success:true, fromCache:true, ...cached });
+    }
     const total = await Documents.countDocuments(filter);
-
-    // Obtener documentos paginados
     const documents = await Documents.find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate('createdBy', 'username name');
-    // Log de los documentos encontrados
-    console.log('Documentos encontrados:', documents);
-
-    res.status(200).json({
-      success: true,
-      documents,
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit)
-    });
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate('createdBy', 'username name');
+    const payload = { documents, page, limit, total, totalPages: Math.ceil(total / limit) };
+    cache.set(cacheKey, payload, 15000); // 15s TTL
+    res.status(200).json({ success:true, ...payload });
   } catch (error) {
     console.error('Error al obtener documentos:', error);
     res.status(500).json({
