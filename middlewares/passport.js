@@ -2,13 +2,22 @@ import Users from "../models/Users.js";  // Cambiado de Admins a Users
 import passport from "passport";
 import { Strategy, ExtractJwt } from "passport-jwt";
 
+// Comprobar que la variable de entorno SECRET_KEY esté definida en tiempo de ejecución.
+const SECRET = process.env.SECRET_KEY;
+if (!SECRET) {
+  console.error('\nERROR: la variable de entorno SECRET_KEY no está definida.\n' +
+    'Asegúrate de definir SECRET_KEY en el entorno (por ejemplo: en Railway -> Settings -> Variables).\n' +
+    'En entornos locales coloca SECRET_KEY en el archivo .env en la raíz del proyecto.\n');
+  throw new Error('Missing environment variable: SECRET_KEY');
+}
+
 export default passport.use(
   new Strategy(
     //defino estrategia para extraer el token le paso parametro estas propiedades:
     {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       //propiedad "token de la solicitud" extraida de la autorizacion de encabezamiento (header) de tipo bearer
-      secretOrKey: process.env.SECRET_KEY,
+      secretOrKey: SECRET,
       //la clave secreta
     },
     async (jwt_payload, done) => {
