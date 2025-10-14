@@ -18,3 +18,4 @@ connect(LINK, { serverSelectionTimeoutMS: 10000 })                        //cone
                 // Volver a lanzar para que el proceso falle y la plataforma (Railway) marque el deploy como fallido.
                 throw err;
         })                   //then y catch
+// touch: cambio mínimo para redeploy 2025-10-14
