@@ -1,4 +1,5 @@
 import 'dotenv/config.js'//configura las variables de entorno de la aplicacion
+// touch: cambio mínimo para forzar redeploy en Railway (fecha: 2025-10-14)
 import "./config/db.js"
 import { __dirname } from './utils.js';
 import cors from 'cors'//modulo para permitir origenes cruzados(puerto del back con puerto del front)
