@@ -17,7 +17,10 @@ export default async function createDocument(req, res) {
       expirationDate,
       antiquityDate,
       bloodType,
-      donor,
+  donor,
+  lentes,
+  diabetes,
+  hipertension,
       restrictions,
       // Nuevos campos federales (opcionales)
       categoriasFederales,
@@ -85,8 +88,36 @@ export default async function createDocument(req, res) {
   expeditionTime: cleanStr(expeditionTime),
       expirationDate: cleanStr(expirationDate),
       antiquityDate: cleanStr(antiquityDate),
-      bloodType: cleanStr(bloodType),
+  bloodType: cleanStr(bloodType),
       donor,
+  // Conversión robusta de banderas médicas (pueden venir como 'si', 'sí', 'true', 1, etc.)
+  lentes: (function(v){
+    if (v === true || v === 1) return true;
+    if (v === false || v === 0) return false;
+    if (typeof v === 'string') {
+      const t = v.trim().toLowerCase();
+      return t === 'true' || t === '1' || t === 'si' || t === 'sí' || t === 'yes' || t === 'on';
+    }
+    return !!v; // fallback
+  })(lentes),
+  diabetes: (function(v){
+    if (v === true || v === 1) return true;
+    if (v === false || v === 0) return false;
+    if (typeof v === 'string') {
+      const t = v.trim().toLowerCase();
+      return t === 'true' || t === '1' || t === 'si' || t === 'sí' || t === 'yes' || t === 'on';
+    }
+    return !!v;
+  })(diabetes),
+  hipertension: (function(v){
+    if (v === true || v === 1) return true;
+    if (v === false || v === 0) return false;
+    if (typeof v === 'string') {
+      const t = v.trim().toLowerCase();
+      return t === 'true' || t === '1' || t === 'si' || t === 'sí' || t === 'yes' || t === 'on';
+    }
+    return !!v;
+  })(hipertension),
       restrictions: cleanStr(restrictions),
       categoriasFederales: Array.isArray(categoriasFederales) && categoriasFederales.length ? categoriasFederales : undefined,
   rfc: cleanStr(rfc),
@@ -123,3 +154,5 @@ export default async function createDocument(req, res) {
     res.status(500).json({ success: false, message: 'Error al crear el documento', details: error.message, stack: error.stack });
   }
 }
+
+// touch: cambio mínimo para redeploy 2025-10-14
