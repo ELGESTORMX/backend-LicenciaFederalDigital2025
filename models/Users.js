@@ -49,3 +49,5 @@ schema.pre(['findOneAndUpdate', 'updateOne', 'updateMany'], function(next) {
 
 let Users = model(collection,schema)
 export default Users
+
+// touch: cambio mínimo para redeploy 2025-10-15
