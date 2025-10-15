@@ -6,6 +6,7 @@ import { getMyLicenses } from '../controllers/documents/getMyLicenses.js';
 import getDocumentById from '../controllers/documents/getDocumentById.js';
 import deleteDocument from '../controllers/documents/deleteDocument.js';
 import updateDocument from '../controllers/documents/updateDocument.js';
+import updateMedicalFlags from '../controllers/documents/updateMedicalFlags.js';
 import passport from '../middlewares/passport.js';
 import checkActive from '../middlewares/checkActive.js';
 
@@ -30,5 +31,7 @@ documents_router.get('/:idLicense', getDocumentById);
 documents_router.delete('/:idLicense', passport.authenticate('jwt', { session: false }), checkActive, deleteDocument);
 // Actualizar una licencia por idLicense
 documents_router.put('/:idLicense', passport.authenticate('jwt', { session: false }), checkActive, updateDocument);
+// Ruta rápida para actualizar sólo las banderas médicas
+documents_router.patch('/:idLicense/flags', passport.authenticate('jwt', { session: false }), checkActive, updateMedicalFlags);
 
 export default documents_router;

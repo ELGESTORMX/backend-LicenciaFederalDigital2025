@@ -5,6 +5,7 @@ let schema = new Schema({
   name: { type: String, required: true },
   photo: { type: String, required: true }, // URL de la foto
   scope: { type: String, enum: ['ESTATAL','FEDERAL'], default: 'FEDERAL' },
+  nacionalidad: { type: String, enum: ['MEXICANA','EXTRANJERO'], default: 'MEXICANA' },
   curp: { type: String, required: true },
   // Campos federales adicionales (opcionales) para futuras licencias federales
   categoriasFederales: { type: [String], default: undefined }, // Ej: ['A','B','C'] según lista federal
@@ -39,6 +40,10 @@ let schema = new Schema({
   bloodType: { type: String, required:false }, // Tipo de sangre (no se imprime en constancia)
   donor: { type: Boolean, default: false }, // Donante de órganos
   restrictions: { type: String, default:'NINGUNA/NONE' }, // Restricciones médicas
+  // Indicadores médicos impresos en la constancia
+  lentes: { type: Boolean, default: false },
+  diabetes: { type: Boolean, default: false },
+  hipertension: { type: Boolean, default: false },
   createdBy: { type: Schema.Types.ObjectId, ref: 'users' },
   createdAt: { type: Date, default: () => new Date() },
   updatedAt: { type: Date, default: () => new Date() }
@@ -74,6 +79,13 @@ schema.pre('save', function(next) {
   if (!this.isNew) {
     this.updatedAt = new Date();
   }
+  // Normalizar nacionalidad
+  if (this.nacionalidad) {
+    this.nacionalidad = String(this.nacionalidad).trim().toUpperCase();
+    if (!['MEXICANA','EXTRANJERO'].includes(this.nacionalidad)) {
+      this.nacionalidad = 'MEXICANA';
+    }
+  }
   // Derivar categoriasTexto si existen categorías federales
   if (Array.isArray(this.categoriasFederales) && this.categoriasFederales.length) {
     this.categoriasTexto = this.categoriasFederales.join('/').toUpperCase();
@@ -107,32 +119,43 @@ schema.pre('save', function(next) {
 // Middleware para findOneAndUpdate, updateOne, etc.
 schema.pre(['findOneAndUpdate', 'updateOne', 'updateMany'], function(next) {
   const update = this.getUpdate() || {};
-  update.updatedAt = new Date();
+  const $set = update.$set || {};
+  // Siempre actualizar updatedAt dentro de $set
+  $set.updatedAt = new Date();
   // Derivar categoriasTexto si se envían nuevas categorías
-  if (update.categoriasFederales && Array.isArray(update.categoriasFederales) && update.categoriasFederales.length) {
-    update.categoriasTexto = update.categoriasFederales.join('/').toUpperCase();
+  if (Array.isArray($set.categoriasFederales) && $set.categoriasFederales.length) {
+    $set.categoriasTexto = $set.categoriasFederales.join('/').toUpperCase();
   }
   // Validaciones en update (solo si se cambia RFC / vigencia)
-  if (update.rfc) {
-    update.rfc = String(update.rfc).toUpperCase().trim();
+  if ($set.rfc) {
+    $set.rfc = String($set.rfc).toUpperCase().trim();
     const rfcRegex = /^([A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3})$/;
-    if (!rfcRegex.test(update.rfc)) {
+    if (!rfcRegex.test($set.rfc)) {
       return next(new Error('RFC inválido (formato esperado XIII010101XXX)'));
     }
   }
-  if (update.vigenciaMedica) {
-    if (!isValidDDMMYYYY(update.vigenciaMedica)) {
+  if ($set.vigenciaMedica) {
+    if (!isValidDDMMYYYY($set.vigenciaMedica)) {
       return next(new Error('vigenciaMedica inválida (DD/MM/AAAA real)'));
     }
   }
   ['expeditionDate','expirationDate','antiquityDate'].forEach(f => {
-    if (update[f] && !isValidDDMMYYYY(update[f])) {
+    if ($set[f] && !isValidDDMMYYYY($set[f])) {
       return next(new Error(`${f} inválida (DD/MM/AAAA real)`));
     }
   });
-  if (update.expeditionTime && !isValidHHMMSS(update.expeditionTime)) {
+  if ($set.expeditionTime && !isValidHHMMSS($set.expeditionTime)) {
     return next(new Error('expeditionTime inválida (HH:MM:SS 24h)'));
   }
+  // Normalizar nacionalidad en updates
+  if ($set.nacionalidad) {
+    $set.nacionalidad = String($set.nacionalidad).trim().toUpperCase();
+    if (!['MEXICANA','EXTRANJERO'].includes($set.nacionalidad)) {
+      $set.nacionalidad = 'MEXICANA';
+    }
+  }
+  // Escribir de vuelta en update
+  update.$set = $set;
   this.set(update);
   next();
 });

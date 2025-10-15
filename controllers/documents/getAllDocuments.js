@@ -11,6 +11,7 @@ export async function getAllDocuments(req, res) {
       userId: req.query.userId
     });
   try {
+    const useCache = process.env.NODE_ENV !== 'production';
     // Parámetros de paginación y búsqueda
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 7;
@@ -32,7 +33,7 @@ export async function getAllDocuments(req, res) {
     console.log('Filtro aplicado:', filter);
 
     const cacheKey = `all:${page}:${limit}:${search}`;
-    const cached = cache.get(cacheKey);
+    const cached = useCache ? cache.get(cacheKey) : null;
     if (cached) {
       return res.status(200).json({ success:true, fromCache:true, ...cached });
     }
@@ -43,7 +44,9 @@ export async function getAllDocuments(req, res) {
         .limit(limit)
         .populate('createdBy', 'username name');
     const payload = { documents, page, limit, total, totalPages: Math.ceil(total / limit) };
-    cache.set(cacheKey, payload, 15000); // 15s TTL
+    // Evitar caches intermedios (proxy/CDN) en producción
+    res.set('Cache-Control', 'no-store');
+  if (useCache) cache.set(cacheKey, payload, 15000); // 15s TTL
     res.status(200).json({ success:true, ...payload });
   } catch (error) {
     console.error('Error al obtener documentos:', error);

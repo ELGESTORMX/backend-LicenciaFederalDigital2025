@@ -7,7 +7,16 @@ if (!LINK) {
     throw new Error('Missing environment variable: LINK_DB');
 }
 
-connect(LINK, { serverSelectionTimeoutMS: 10000 })                        //conecto con el link de la db guardado en la variable de entorno del archivo .env
+connect(LINK, {
+    // Preferir primario para lecturas y escrituras
+    readPreference: 'primary',
+    // Reintentos de escritura en clústeres que lo soportan
+    retryWrites: true,
+    // Asegurar escrituras reconocidas
+    w: 'majority',
+    wtimeoutMS: 5000,
+    serverSelectionTimeoutMS: 10000
+})                        //conecto con el link de la db guardado en la variable de entorno del archivo .env
         .then(()=>console.log('connected to db'))       //devuelve una promesa por lo que es necesario configurar
         .catch(err=>{
                 console.error('\nERROR: No fue posible conectar a MongoDB Atlas. Revisa:\n' +

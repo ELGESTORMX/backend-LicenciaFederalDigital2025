@@ -1,5 +1,4 @@
 import express from 'express'
-// touch: cambio mínimo para redeploy (routes/index.js) 2025-10-14
 import users_router from './users.js';
 import documents_router from './documents.js';
 import Documents from '../models/Documents.js';
