@@ -32,3 +32,5 @@ function invalidateDocuments() {
 }
 
 export default { set, get, del, flush, invalidateDocuments };
+
+// touch: cambio mínimo para redeploy 2025-10-15
