@@ -7,6 +7,8 @@ export default async function getDocumentById(req, res) {
     // lean con defaults si disponibles (Mongoose 7) y luego normalizamos
     let document = await Documents.findOne({ idLicense }).lean({ defaults: true });
     if (!document) return res.status(404).json({ message: 'No se encontró la licencia.' });
+    // Evitar caches que hagan que el modal lea un valor viejo
+    res.set('Cache-Control', 'no-store');
     // Normalización robusta: garantizar booleanos reales aunque en la DB haya strings 'true'/'false'
     ['lentes','diabetes','hipertension'].forEach(f => {
       const v = document[f];

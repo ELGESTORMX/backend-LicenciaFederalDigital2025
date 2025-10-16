@@ -18,6 +18,8 @@ let schema = new Schema({
   enteEmisor: { type: String, trim: true }, // Secretaría / DGAF / etc.
   estadoEmision: { type: String, trim: true }, // Estado donde se emitió
   observaciones: { type: String, trim: true }, // Texto libre
+  // Texto de validez/reconocimiento impreso en el PDF (configurable)
+  validityText: { type: String, trim: true },
   claseVehicular: { type: String, trim: true }, // Vehículos de dos/tres ejes, tractocamión, etc.
   numeroAptitudPsicofisica: { type: String, trim: true }, // Número de aptitud psicofísica (historial médico)
   categoriasTexto: { type: String, index: true }, // Campo derivado para búsqueda rápida (A/B/C)
