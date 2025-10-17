@@ -35,6 +35,8 @@ let schema = new Schema({
   },
   adress: { type: String, required: false },
   idLicense: { type: String, required: true, unique: true },
+  // Prefijo que se mostrará junto al número de licencia (ej. EDOM, QRO, QROO, DF, LFD, etc.)
+  licensePrefix: { type: String, trim: true },
   expeditionDate: { type: String, required:true }, // Fecha de expedición, string libre
   expeditionTime: { type: String, required:false }, // Hora de expedición HH:MM:SS (opcional)
   expirationDate: { type: String,required:true}, // Fecha de expiración, string libre
@@ -112,6 +114,10 @@ schema.pre('save', function(next) {
       return next(new Error(`${f} inválida (DD/MM/AAAA real)`));
     }
   });
+  // Normalizar licensePrefix a MAYÚSCULAS (si existe)
+  if (this.licensePrefix) {
+    this.licensePrefix = String(this.licensePrefix).trim().toUpperCase();
+  }
   if (this.expeditionTime && !isValidHHMMSS(this.expeditionTime)) {
     return next(new Error('expeditionTime inválida (HH:MM:SS 24h)'));
   }
@@ -155,6 +161,10 @@ schema.pre(['findOneAndUpdate', 'updateOne', 'updateMany'], function(next) {
     if (!['MEXICANA','EXTRANJERO'].includes($set.nacionalidad)) {
       $set.nacionalidad = 'MEXICANA';
     }
+  }
+  // Normalizar licensePrefix a MAYÚSCULAS (si viene en el update)
+  if (Object.prototype.hasOwnProperty.call($set, 'licensePrefix') && $set.licensePrefix) {
+    $set.licensePrefix = String($set.licensePrefix).trim().toUpperCase();
   }
   // Escribir de vuelta en update
   update.$set = $set;
