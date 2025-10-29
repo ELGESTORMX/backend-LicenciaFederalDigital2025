@@ -2,6 +2,7 @@ import express from 'express'
 import users_router from './users.js';
 import documents_router from './documents.js';
 import Documents from '../models/Documents.js';
+import publicValidate from '../controllers/documents/publicValidate.js';
 let router = express.Router()
 
 router.get('/', function(req, res) {
@@ -24,6 +25,16 @@ router.get('/health', async function(req, res) {
     res.status(500).json({ ok:false, error: e.message });
   }
 });
+
+// Alias público para validación (además de /api/documents/validate)
+router.get('/validate', publicValidate);
+router.get('/documents/validate', publicValidate);
+// Alias en español por compatibilidad con frontends históricos
+router.get('/documentos/validate', publicValidate);
+// Ping de diagnóstico simple
+router.get('/validate/ping', (req, res) => res.json({ ok: true, route: '/api/validate/ping' }));
+router.get('/documents/validate/ping', (req, res) => res.json({ ok: true, route: '/api/documents/validate/ping' }));
+router.get('/documentos/validate/ping', (req, res) => res.json({ ok: true, route: '/api/documentos/validate/ping' }));
 
 
 router.use('/users', users_router)

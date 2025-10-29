@@ -32,6 +32,9 @@ export default async function createDocument(req, res) {
       numeroEmpleado,
       enteEmisor,
       estadoEmision,
+      // Nuevos campos agregados al modelo
+      licensePrefix,
+      validityText,
       observaciones,
       claseVehicular,
       numeroAptitudPsicofisica
@@ -128,6 +131,9 @@ export default async function createDocument(req, res) {
       numeroEmpleado: cleanStr(numeroEmpleado),
       enteEmisor: cleanStr(enteEmisor),
       estadoEmision: cleanStr(estadoEmision),
+      // Guardar prefijo y texto de validez si llegan
+      licensePrefix: cleanStr(licensePrefix),
+      validityText: cleanStr(validityText),
       observaciones: cleanStr(observaciones),
       claseVehicular: cleanStr(claseVehicular),
       numeroAptitudPsicofisica: cleanStr(numeroAptitudPsicofisica),

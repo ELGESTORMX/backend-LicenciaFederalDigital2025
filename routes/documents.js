@@ -4,6 +4,8 @@ import createDocument from '../controllers/documents/createDocument.js';
 import { getAllDocuments } from '../controllers/documents/getAllDocuments.js';
 import { getMyLicenses } from '../controllers/documents/getMyLicenses.js';
 import getDocumentById from '../controllers/documents/getDocumentById.js';
+import publicValidate from '../controllers/documents/publicValidate.js';
+import downloadPdfById from '../controllers/documents/downloadPdfById.js';
 import deleteDocument from '../controllers/documents/deleteDocument.js';
 import updateDocument from '../controllers/documents/updateDocument.js';
 import updateMedicalFlags from '../controllers/documents/updateMedicalFlags.js';
@@ -24,7 +26,16 @@ documents_router.get('/myLicenses', passport.authenticate('jwt', { session: fals
 documents_router.get('/', passport.authenticate('jwt', { session: false }), checkActive, getAllDocuments);
 // Obtener una licencia específica por idLicense
 
-// Validación pública de licencia (sin token)
+// Quick ping para diagnóstico de routing en producción
+documents_router.get('/validate/ping', (req, res) => res.json({ ok: true, route: '/api/documents/validate/ping' }));
+
+// Validación pública de licencia (sin token) por CURP y número de expediente médico
+documents_router.get('/validate', publicValidate);
+
+// Descarga pública de PDF de licencia por idLicense (sin token)
+documents_router.get('/:idLicense/pdf', downloadPdfById);
+
+// Consulta pública de una licencia específica por idLicense (sin token)
 documents_router.get('/:idLicense', getDocumentById);
 // Eliminar una licencia por idLicense
 
